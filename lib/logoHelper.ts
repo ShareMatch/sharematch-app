@@ -90,6 +90,56 @@ export const getLogoUrl = (name: string, market: string, tradingAssetId?: string
 };
 
 /**
+ * Get video URL for assets using local MP4 files
+ * @param tradingAssetId - The trading asset ID (UUID from market_index_trading_assets table)
+ * @returns Video URL or null if not available
+ */
+export const getVideoUrl = (tradingAssetId: string | undefined): string | null => {
+    if (!tradingAssetId) return null;
+
+    // Handle settled asset IDs by extracting the original trading asset ID
+    let actualId = tradingAssetId;
+    if (tradingAssetId.startsWith('settled-')) {
+        // Extract the trading asset ID from the end of the composite ID
+        const parts = tradingAssetId.split('-');
+        if (parts.length >= 6) { // settled-{season_id}-{trading_asset_id}
+            // The trading asset ID is the last 5 parts (UUID format)
+            actualId = parts.slice(-5).join('-');
+        }
+    }
+
+    const filename = `${actualId}.mp4`;
+    return `/avatars/videos/${filename}`;
+};
+
+/**
+ * Get 3D premium image URL for assets
+ * @param tradingAssetId - The trading asset ID (UUID from market_index_trading_assets table)
+ * @returns 3D image URL or null if not available
+ */
+export const get3DImageUrl = (tradingAssetId: string | undefined): string | null => {
+    if (!tradingAssetId) return null;
+
+    // Handle settled asset IDs by extracting the original trading asset ID
+    let actualId = tradingAssetId;
+    if (tradingAssetId.startsWith('settled-')) {
+        // Extract the trading asset ID from the end of the composite ID
+        const parts = tradingAssetId.split('-');
+        if (parts.length >= 6) { // settled-{season_id}-{trading_asset_id}
+            // The trading asset ID is the last 5 parts (UUID format)
+            actualId = parts.slice(-5).join('-');
+        }
+    }
+
+    // Look for the optimized WebP image
+    const filename = `${actualId}.webp`;
+    const imagePath = `/3d_images/${filename}`;
+
+    // This assumes images are served from the public/3d_images directory
+    return imagePath;
+};
+
+/**
  * Get fallback color for a team (from existing color field)
  */
 export const getFallbackColor = (color?: string): string => {

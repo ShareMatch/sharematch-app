@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "description": "Premium 3D avatar images manifest",
+  "generated_at": "2024-01-01T00:00:00Z",
+  "assets": {
+    "0a4cbe88-dc22-414c-b453-0bffa6a91dcc": {
+      "name": "MAR",
+      "initials": "MAR",
+      "market_token": "UCL",
+      "asset_class": "football",
+      "colors": {
+        "primary": "#005CB8",
+        "secondary": "#FFFFFF"
+      },
+      "images": {
+        "512px": "error://Invalid endpoint: https://your_r2_account_id.r2.cloudflarestorage.com",
+        "256px": "error://Invalid endpoint: https://your_r2_account_id.r2.cloudflarestorage.com"
+      }
+    }
+  }
+}

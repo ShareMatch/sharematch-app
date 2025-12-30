@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { ArrowLeft, Share2, Star, TrendingUp, BarChart3, DollarSign } from "lucide-react";
 import PriceVolumeChart from "./PriceVolumeChart";
 import TradeHistoryList from "./TradeHistoryList";
@@ -7,7 +7,7 @@ import { Team } from "../types";
 import NewsFeed from "./NewsFeed";
 import DidYouKnow from "./DidYouKnow";
 import OnThisDay from "./OnThisDay";
-import { getLogoUrl } from "../lib/logoHelper";
+import { getLogoUrl, getVideoUrl, get3DImageUrl } from "../lib/logoHelper";
 
 interface AssetPageProps {
     asset: Team;
@@ -36,6 +36,24 @@ const AssetPage: React.FC<AssetPageProps> = ({ asset, onBack, onSelectOrder }) =
         return asset.market ? getLogoUrl(asset.name || '', asset.market, asset.id) : null;
     }, [asset.name, asset.market, asset.id]);
 
+    // Get video URL for the asset
+    const videoUrl = useMemo(() => {
+        return getVideoUrl(asset.id);
+    }, [asset.id]);
+
+    // Get 3D premium image URL for the asset
+    const image3DUrl = useMemo(() => {
+        return get3DImageUrl(asset.id);
+    }, [asset.id]);
+
+    // State for video loading/error handling
+    const [videoError, setVideoError] = useState(false);
+
+    // Reset video error when asset changes
+    useEffect(() => {
+        setVideoError(false);
+    }, [asset.id]);
+
     // Generate a distinct color for fallback avatar based on name hash
     const avatarColor = useMemo(() => {
         const colors = ['bg-blue-600', 'bg-emerald-600', 'bg-violet-600', 'bg-amber-600', 'bg-rose-600'];
@@ -61,7 +79,40 @@ const AssetPage: React.FC<AssetPageProps> = ({ asset, onBack, onSelectOrder }) =
                     </button>
                     
                     <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        {avatarUrl ? (
+                        {image3DUrl ? (
+                            // 3D animated image (highest priority)
+                            <div className="coin-container">
+                                <img
+                                    src={image3DUrl}
+                                    alt={`${asset.name} 3D avatar`}
+                                    className="coin-mobile w-12 h-12 rounded-full border border-white/10 flex-shrink-0"
+                                    style={{
+                                        transform: 'scale(1.15)',
+                                        objectPosition: 'center center'
+                                    }}
+                                    onError={() => console.log(`3D image failed for ${asset.name}`)}
+                                />
+                            </div>
+                        ) : videoUrl && !videoError ? (
+                            <div className="w-12 h-12 rounded-full flex items-center justify-center border border-white/10 flex-shrink-0 overflow-hidden relative">
+                                <div className="absolute inset-0 pt-2">
+                                    <video
+                                        src={videoUrl}
+                                        autoPlay
+                                        loop
+                                        muted
+                                        playsInline
+                                        className="w-full h-full object-cover rounded-full"
+                                        style={{
+                                            transform: 'scale(1.15)',
+                                            objectPosition: 'center center',
+                                            transformOrigin: 'center center'
+                                        }}
+                                        onError={() => setVideoError(true)}
+                                    />
+                                </div>
+                            </div>
+                        ) : avatarUrl ? (
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center border border-white/10 flex-shrink-0">
                                 <img
                                     src={avatarUrl}
@@ -154,7 +205,40 @@ const AssetPage: React.FC<AssetPageProps> = ({ asset, onBack, onSelectOrder }) =
 
                     <div className="flex items-center gap-3">
                         {/* Asset Avatar */}
-                        {avatarUrl ? (
+                        {image3DUrl ? (
+                            // 3D animated image (highest priority)
+                            <div className="coin-container">
+                                <img
+                                    src={image3DUrl}
+                                    alt={`${asset.name} 3D avatar`}
+                                    className="coin-3d w-28 h-28 rounded-full border border-white/10"
+                                    style={{
+                                        transform: 'scale(1.15)',
+                                        objectPosition: 'center center'
+                                    }}
+                                    onError={() => console.log(`3D image failed for ${asset.name}`)}
+                                />
+                            </div>
+                        ) : videoUrl && !videoError ? (
+                            <div className="w-28 h-28 rounded-full flex items-center justify-center overflow-hidden relative">
+                                <div className="absolute inset-0 pt-3">
+                                    <video
+                                        src={videoUrl}
+                                        autoPlay
+                                        loop
+                                        muted
+                                        playsInline
+                                        className="w-full h-full object-cover rounded-full"
+                                        style={{
+                                            transform: 'scale(1.15)',
+                                            objectPosition: 'center center',
+                                            transformOrigin: 'center center'
+                                        }}
+                                        onError={() => setVideoError(true)}
+                                    />
+                                </div>
+                            </div>
+                        ) : avatarUrl ? (
                             <div className="w-20 h-20 rounded-xl flex items-center justify-center">
                                 <img
                                     src={avatarUrl}
