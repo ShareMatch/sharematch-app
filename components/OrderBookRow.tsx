@@ -48,7 +48,7 @@ const OrderBookRow: React.FC<OrderBookRowProps> = ({ team, onSelectOrder, onView
         onClick={() => onViewAsset?.(team)}
       >
         {logoUrl && !logoError ? (
-          <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center">
             <img
               src={logoUrl}
               alt={`${team.name} logo`}
@@ -58,7 +58,7 @@ const OrderBookRow: React.FC<OrderBookRowProps> = ({ team, onSelectOrder, onView
           </div>
         ) : (
           <div
-            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 border border-white/20"
+            className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 border border-white/20"
             style={{ backgroundColor: team.color || '#6B7280' }}
           >
             <span className="text-white text-xs font-bold">

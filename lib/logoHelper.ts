@@ -6,6 +6,14 @@
  * Team logo mappings to reliable sources
  * Using a combination of sources for best coverage
  */
+/**
+ * Helper to convert decimal odds to Buy/Sell prices
+ */
+const isLikelyUuid = (value: string): boolean => {
+    // Accept UUID v4 style ids; also used for "settled-..." composite IDs (handled upstream)
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+};
+
 const TEAM_LOGOS: Record<string, string> = {
     // EPL Teams - Using official club domains for logo.dev
     'Arsenal': 'https://logo.clearbit.com/arsenal.com',
@@ -41,26 +49,52 @@ const TEAM_LOGOS: Record<string, string> = {
 };
 
 /**
- * Generate avatar URL for assets using local SVG files
+ * Generate avatar URL for assets using local files
  * @param tradingAssetId - The trading asset ID (UUID from market_index_trading_assets table)
+ * @param market - Market type to determine file extension (optional)
+ * @param teamName - Team name for fallback lookup (optional)
  * @returns Avatar URL or null if not available
  */
-export const getAvatarUrl = (tradingAssetId: string | undefined): string | null => {
-    if (!tradingAssetId) return null;
+export const getAvatarUrl = (tradingAssetId: string | undefined, market?: string, teamName?: string): string | null => {
+    if (!tradingAssetId && !teamName) return null;
 
-    // Handle settled asset IDs by extracting the original trading asset ID
-    let actualId = tradingAssetId;
-    if (tradingAssetId.startsWith('settled-')) {
-        // Extract the trading asset ID from the end of the composite ID
-        const parts = tradingAssetId.split('-');
-        if (parts.length >= 6) { // settled-{season_id}-{trading_asset_id}
-            // The trading asset ID is the last 5 parts (UUID format)
-            actualId = parts.slice(-5).join('-');
+    // Use PNG files for EPL assets, SVG for others
+    const extension = market === 'EPL' ? 'png' : 'svg';
+
+    // First try UUID-based lookup (if available)
+    if (tradingAssetId) {
+        // Handle settled asset IDs by extracting the original trading asset ID
+        let actualId = tradingAssetId;
+        if (tradingAssetId.startsWith('settled-')) {
+            // Extract the trading asset ID from the end of the composite ID
+            const parts = tradingAssetId.split('-');
+            if (parts.length >= 6) { // settled-{season_id}-{trading_asset_id}
+                // The trading asset ID is the last 5 parts (UUID format)
+                actualId = parts.slice(-5).join('-');
+            }
+        }
+
+        // Only attempt UUID lookup for real UUIDs
+        if (isLikelyUuid(actualId)) {
+            const filename = `${actualId}.${extension}`;
+            return `/avatars/${filename}`;
         }
     }
 
-    const filename = `${actualId}.svg`;
-    return `/avatars/${filename}`;
+    // Fallback to team name-based lookup
+    if (teamName) {
+        // Normalize team name for filename: lowercase, replace spaces/special chars with underscores
+        const normalizedName = teamName
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '_') // Replace any non-alphanumeric with underscore
+            .replace(/_+/g, '_') // Replace multiple underscores with single
+            .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+
+        const filename = `${normalizedName}.${extension}`;
+        return `/avatars/${filename}`;
+    }
+
+    return null;
 };
 
 /**
@@ -74,11 +108,9 @@ export const getLogoUrl = (name: string, market: string, tradingAssetId?: string
     // Defensive programming - ensure we have valid inputs
     if (!name || !market) return null;
 
-    // Try to use the generated avatar first (if trading asset ID is available)
-    if (tradingAssetId) {
-        const avatarUrl = getAvatarUrl(tradingAssetId);
-        if (avatarUrl) return avatarUrl;
-    }
+    // Try to use the generated avatar first (with both UUID and name fallback)
+    const avatarUrl = getAvatarUrl(tradingAssetId, market, name);
+    if (avatarUrl) return avatarUrl;
 
     // Fallback to traditional logo mappings
     if (TEAM_LOGOS[name]) {

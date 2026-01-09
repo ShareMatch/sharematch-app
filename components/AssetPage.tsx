@@ -61,10 +61,40 @@ const AssetPage: React.FC<AssetPageProps> = ({ asset, onBack, onSelectOrder }) =
         return colors[index];
     }, [asset.name]);
 
+    const isMarseilleUcl =
+        (asset.market || '').toUpperCase() === 'UCL' &&
+        ['marseille', 'marseilles'].includes((asset.name || '').toLowerCase());
+
+    const isEplAsset = (asset.market || '').toUpperCase() === 'EPL';
+
     const handleShare = () => {
         navigator.clipboard.writeText(`Check out ${asset.name} on ShareMatch!`);
         alert('Link copied to clipboard!');
     };
+
+    const coinStyle = useMemo(() => {
+        if (!isMarseilleUcl && !isEplAsset) return undefined;
+
+        if (isMarseilleUcl) {
+            // Match the navy tone in the Marseille UCL badge (explicit override)
+            const rim = '#0B3B73';
+            return {
+                ['--sm-coin-rim' as any]: rim,
+                ['--sm-coin-rim-thickness' as any]: '6px',
+            } as React.CSSProperties;
+        }
+
+        if (isEplAsset) {
+            // Use team color for EPL assets with thick coin edge and enhanced depth perception
+            const rim = asset.color || '#6B7280';
+            return {
+                ['--sm-coin-rim' as any]: rim,
+                ['--sm-coin-rim-thickness' as any]: '6px',
+                ['--sm-coin-depth' as any]: '18px',
+                ['--sm-avatar-glow' as any]: `${rim}20`, // Low opacity team color for subtle glow
+            } as React.CSSProperties;
+        }
+    }, [asset.color, isMarseilleUcl, isEplAsset]);
 
     return (
         <div className="h-full overflow-y-auto bg-[#040B11] text-gray-200">
@@ -79,46 +109,30 @@ const AssetPage: React.FC<AssetPageProps> = ({ asset, onBack, onSelectOrder }) =
                     </button>
                     
                     <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                        {image3DUrl ? (
-                            // 3D animated image (highest priority)
-                            <div className="coin-container">
-                                <img
-                                    src={image3DUrl}
-                                    alt={`${asset.name} 3D avatar`}
-                                    className="coin-mobile w-12 h-12 rounded-full border border-white/10 flex-shrink-0"
-                                    style={{
-                                        transform: 'scale(1.15)',
-                                        objectPosition: 'center center'
-                                    }}
-                                    onError={() => console.log(`3D image failed for ${asset.name}`)}
-                                />
-                            </div>
-                        ) : videoUrl && !videoError ? (
-                            <div className="w-12 h-12 rounded-full flex items-center justify-center border border-white/10 flex-shrink-0 overflow-hidden relative">
-                                <div className="absolute inset-0 pt-2">
-                                    <video
-                                        src={videoUrl}
-                                        autoPlay
-                                        loop
-                                        muted
-                                        playsInline
-                                        className="w-full h-full object-cover rounded-full"
-                                        style={{
-                                            transform: 'scale(1.15)',
-                                            objectPosition: 'center center',
-                                            transformOrigin: 'center center'
-                                        }}
-                                        onError={() => setVideoError(true)}
+                        {avatarUrl ? (
+                            <div className={`w-12 h-12 flex items-center justify-center flex-shrink-0 ${(isMarseilleUcl || isEplAsset) ? 'sm-3d-perspective rounded-full relative z-10' : 'rounded-lg'}`}>
+                                {(isMarseilleUcl || isEplAsset) ? (
+                                    <div className="w-full h-full sm-coin sm-coin-tilt rounded-full" style={coinStyle}>
+                                        <div className="w-full h-full sm-spin-coin">
+                                            <img
+                                                src={avatarUrl}
+                                                alt={`${asset.name} avatar (front)`}
+                                                className="w-full h-full object-contain rounded-full sm-coin-face sm-coin-front"
+                                            />
+                                            <img
+                                                src={avatarUrl}
+                                                alt={`${asset.name} avatar (back)`}
+                                                className="w-full h-full object-contain rounded-full sm-coin-face sm-coin-back"
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <img
+                                        src={avatarUrl}
+                                        alt={`${asset.name} avatar`}
+                                        className="w-full h-full object-contain rounded-lg"
                                     />
-                                </div>
-                            </div>
-                        ) : avatarUrl ? (
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center border border-white/10 flex-shrink-0">
-                                <img
-                                    src={avatarUrl}
-                                    alt={`${asset.name} avatar`}
-                                    className="w-full h-full object-contain rounded-lg"
-                                />
+                                )}
                             </div>
                         ) : (
                             <div className={`w-8 h-8 rounded-lg ${avatarColor} flex items-center justify-center border border-white/10 flex-shrink-0`}>
@@ -205,46 +219,30 @@ const AssetPage: React.FC<AssetPageProps> = ({ asset, onBack, onSelectOrder }) =
 
                     <div className="flex items-center gap-3">
                         {/* Asset Avatar */}
-                        {image3DUrl ? (
-                            // 3D animated image (highest priority)
-                            <div className="coin-container">
-                                <img
-                                    src={image3DUrl}
-                                    alt={`${asset.name} 3D avatar`}
-                                    className="coin-3d w-28 h-28 rounded-full border border-white/10"
-                                    style={{
-                                        transform: 'scale(1.15)',
-                                        objectPosition: 'center center'
-                                    }}
-                                    onError={() => console.log(`3D image failed for ${asset.name}`)}
-                                />
-                            </div>
-                        ) : videoUrl && !videoError ? (
-                            <div className="w-28 h-28 rounded-full flex items-center justify-center overflow-hidden relative">
-                                <div className="absolute inset-0 pt-3">
-                                    <video
-                                        src={videoUrl}
-                                        autoPlay
-                                        loop
-                                        muted
-                                        playsInline
-                                        className="w-full h-full object-cover rounded-full"
-                                        style={{
-                                            transform: 'scale(1.15)',
-                                            objectPosition: 'center center',
-                                            transformOrigin: 'center center'
-                                        }}
-                                        onError={() => setVideoError(true)}
+                        {avatarUrl ? (
+                            <div className={`w-28 h-28 flex items-center justify-center ${(isMarseilleUcl || isEplAsset) ? 'sm-3d-perspective rounded-full relative z-10' : 'rounded-xl'}`}>
+                                {(isMarseilleUcl || isEplAsset) ? (
+                                    <div className="w-full h-full sm-coin sm-coin-tilt rounded-full" style={coinStyle}>
+                                        <div className="w-full h-full sm-spin-coin">
+                                            <img
+                                                src={avatarUrl}
+                                                alt={`${asset.name} avatar (front)`}
+                                                className="w-full h-full object-contain rounded-full sm-coin-face sm-coin-front"
+                                            />
+                                            <img
+                                                src={avatarUrl}
+                                                alt={`${asset.name} avatar (back)`}
+                                                className="w-full h-full object-contain rounded-full sm-coin-face sm-coin-back"
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <img
+                                        src={avatarUrl}
+                                        alt={`${asset.name} avatar`}
+                                        className="w-full h-full object-contain rounded-xl"
                                     />
-                                </div>
-                            </div>
-                        ) : avatarUrl ? (
-                            <div className="w-20 h-20 rounded-xl flex items-center justify-center">
-                                <img
-                                    src={avatarUrl}
-                                    alt={`${asset.name} avatar`}
-                                    className="w-full h-full object-contain rounded-xl"
-                                />
+                                )}
                             </div>
                         ) : (
                             <div className={`w-20 h-20 rounded-xl ${avatarColor} flex items-center justify-center shadow-lg shadow-black/50 border border-white/10`}>
