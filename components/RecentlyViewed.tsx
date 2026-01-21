@@ -101,7 +101,10 @@ const RecentlyViewed: React.FC<RecentlyViewedProps> = ({
                                     </span>
                                     <div className="w-1 h-1 rounded-full bg-gray-600" />
                                     <span className="text-xs text-brand-secondary font-medium">
-                                        {item.offer.toFixed(2)}
+                                        {(typeof item.offer === "number"
+                                            ? item.offer
+                                            : 0
+                                        ).toFixed(2)}
                                     </span>
                                 </div>
                             </div>

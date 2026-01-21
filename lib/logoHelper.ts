@@ -60,7 +60,7 @@ export const getAvatarUrl = (tradingAssetId: string | undefined): string | null 
     }
 
     const filename = `${actualId}.svg`;
-    return `/avatars/${filename}`;
+    return `https://assets.rwa.sharematch.me/avatars/${filename}`;
 };
 
 /**

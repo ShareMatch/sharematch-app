@@ -54,7 +54,7 @@ WITH updates (asset_name, market_name, new_buy, new_sell) AS (
     ${values.join(',\n    ')}
 )
 UPDATE market_index_trading_assets mita
-SET buy = u.new_buy, sell = u.new_sell
+SET buy_price = u.new_buy, sell_price = u.new_sell
 FROM updates u
 JOIN assets a ON a.name = u.asset_name
 JOIN market_indexes mi ON mi.name = u.market_name
